@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Enterprise Customer Intelligence Platform - AI-powered churn prediction, CLV forecasting, and causal impact analysis">
-    <title>Enterprise Customer Intelligence Platform</title>
+    <meta name="description" content="Enterprise Customer Intelligence Platform — CLV, Churn Prediction & Causal Inference">
+    <title>CustomerIQ — Intelligence Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,102 +12,84 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                </div>
-                <div class="logo-text">
-                    <span class="logo-title">CustomerIQ</span>
-                    <span class="logo-subtitle">Intelligence Platform</span>
-                </div>
-            </div>
+        <div class="sidebar-brand">
+            <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+            <div class="brand-text"><span class="brand-name">CustomerIQ</span><span class="brand-tag">Intelligence Platform</span></div>
         </div>
-        <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-page="overview" id="nav-overview">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                <span>Overview</span>
+        <nav class="sidebar-nav" id="sidebar-nav">
+            <div class="nav-section-label">Analytics</div>
+            <a href="#" class="nav-link active" data-page="dashboard" id="nav-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                <span>Dashboard</span>
             </a>
-            <a href="#" class="nav-item" data-page="churn" id="nav-churn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                <span>Churn Analysis</span>
+            <a href="#" class="nav-link" data-page="churn" id="nav-churn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                <span>Churn Analytics</span>
             </a>
-            <a href="#" class="nav-item" data-page="clv" id="nav-clv">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <span>CLV Forecast</span>
-            </a>
-            <a href="#" class="nav-item" data-page="segmentation" id="nav-segmentation">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+            <a href="#" class="nav-link" data-page="segmentation" id="nav-segmentation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
                 <span>Segmentation</span>
             </a>
-            <a href="#" class="nav-item" data-page="causal" id="nav-causal">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                <span>Causal Impact</span>
+            <a href="#" class="nav-link" data-page="clv" id="nav-clv">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>CLV Analytics</span>
             </a>
-            <a href="#" class="nav-item" data-page="recommendations" id="nav-recommendations">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            <a href="#" class="nav-link" data-page="causal" id="nav-causal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                <span>Causal Analysis</span>
+            </a>
+            <a href="#" class="nav-link" data-page="recommendations" id="nav-recommendations">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                 <span>Recommendations</span>
             </a>
-            <a href="#" class="nav-item" data-page="explainability" id="nav-explainability">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                <span>Explainability</span>
-            </a>
         </nav>
-        <div class="sidebar-footer">
-            <div class="api-status" id="api-status">
-                <div class="status-dot"></div>
-                <span>API Connected</span>
+        <div class="sidebar-bottom">
+            <div class="connection-status" id="connection-status">
+                <div class="status-indicator offline"></div>
+                <span>Connecting...</span>
             </div>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
+    <!-- Main -->
+    <main class="main" id="main">
         <!-- Top Bar -->
         <header class="topbar">
-            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+            <button class="topbar-menu-btn" id="menu-btn" aria-label="Menu">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
-            <div class="topbar-title">
-                <h1 id="page-title">Platform Overview</h1>
-                <p id="page-subtitle">Real-time customer intelligence metrics</p>
+            <div class="topbar-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Search customers, segments..." id="global-search">
             </div>
-            <div class="topbar-actions">
-                <div class="search-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" placeholder="Search customers..." id="search-input">
-                </div>
-                <button class="icon-btn" id="refresh-btn" aria-label="Refresh data">
+            <div class="topbar-right">
+                <div class="topbar-date" id="current-date"></div>
+                <button class="topbar-icon-btn" id="refresh-data" title="Refresh Data">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                 </button>
-                <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">
+                <button class="topbar-icon-btn" id="theme-btn" title="Toggle Theme">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
+                <div class="topbar-avatar" title="Admin">A</div>
             </div>
         </header>
 
-        <!-- Page Container -->
-        <div class="page-container">
-            <!-- Overview Page -->
-            <section class="page active" id="page-overview"></section>
-            <!-- Churn Page -->
+        <!-- Content -->
+        <div class="content" id="content">
+            <section class="page active" id="page-dashboard"></section>
             <section class="page" id="page-churn"></section>
-            <!-- CLV Page -->
-            <section class="page" id="page-clv"></section>
-            <!-- Segmentation Page -->
             <section class="page" id="page-segmentation"></section>
-            <!-- Causal Page -->
+            <section class="page" id="page-clv"></section>
             <section class="page" id="page-causal"></section>
-            <!-- Recommendations Page -->
             <section class="page" id="page-recommendations"></section>
-            <!-- Explainability Page -->
-            <section class="page" id="page-explainability"></section>
         </div>
     </main>
 
-    <script src="data.js"></script>
+    <div class="mobile-overlay" id="mobile-overlay"></div>
+
+    <script src="api.js"></script>
     <script src="charts.js"></script>
     <script src="pages.js"></script>
     <script src="app.js"></script>

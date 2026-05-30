@@ -1,325 +1,889 @@
 /**
- * Page renderers for each dashboard section.
+ * CustomerIQ - Page Renderers & Content Handlers
  */
 
-function fmt(n, prefix = '', suffix = '') {
-    if (n >= 1000000) return prefix + (n / 1000000).toFixed(1) + 'M' + suffix;
-    if (n >= 1000) return prefix + n.toLocaleString() + suffix;
-    return prefix + n + suffix;
-}
-
-function metricCard(label, value, change, trend, iconClass, colorClass, delay) {
-    const arrow = trend === 'up' ? '↑' : '↓';
-    const trendBadge = trend === 'down' && change < 0 ? 'up' : trend; // negative churn = good
-    return `
-    <div class="metric-card ${colorClass} animate-in animate-delay-${delay}">
-        <div class="metric-header">
-            <span class="metric-label">${label}</span>
-            <div class="metric-icon ${colorClass}">${iconClass}</div>
-        </div>
-        <div class="metric-value">${value}</div>
-        <span class="metric-change ${trendBadge}">${arrow} ${Math.abs(change)}%</span>
-    </div>`;
+function formatNumber(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return n.toLocaleString();
+    return n;
 }
 
 const PageRenderers = {
-    overview() {
-        const d = DashboardData.overview;
-        const m = d.metrics;
+    async dashboard() {
+        const data = await window.CustomerIQAPI.fetchData('dashboard');
+        const k = data.kpis;
+        
         return `
-            <div class="metrics-grid">
-                ${metricCard('Total Customers', fmt(m.totalCustomers.value), m.totalCustomers.change, m.totalCustomers.trend,
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', 'blue', 1)}
-                ${metricCard('Churn Rate', m.churnRate.value + '%', m.churnRate.change, 'down',
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>', 'rose', 2)}
-                ${metricCard('Average CLV', '$' + fmt(m.avgCLV.value), m.avgCLV.change, m.avgCLV.trend,
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', 'emerald', 3)}
-                ${metricCard('Total Revenue', '$' + fmt(m.revenue.value), m.revenue.change, m.revenue.trend,
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>', 'purple', 4)}
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Executive Dashboard</h1>
+                    <p class="page-subtitle">Real-time enterprise metrics & intelligence portfolio</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="window.exportDashboard()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export PDF</button>
+                </div>
             </div>
-            <div class="charts-grid">
-                <div class="chart-card animate-in animate-delay-2">
-                    <div class="chart-header">
-                        <div><div class="chart-title">Monthly Revenue Trend</div><div class="chart-subtitle">Jan – Dec 2024</div></div>
-                        <span class="chart-badge emerald">+12.1%</span>
+
+            <!-- Executive Summary Panel -->
+            <div class="executive-summary-panel">
+                <div class="summary-icon">✨</div>
+                <div class="summary-text">
+                    <h4>Executive Intelligence Insight</h4>
+                    <p>Overall customer health score remains strong at 92.6%. Monthly recurring revenue projection shows positive momentum (+8.2% MoM), while causal treatment models indicate churn interventions saved approximately $2.4M in potential recurring revenue this quarter.</p>
+                </div>
+            </div>
+
+            <!-- KPI Row -->
+            <div class="kpis-row">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Total Users</span>
+                        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
                     </div>
-                    <div class="chart-container" style="height:280px"><canvas id="chart-revenue"></canvas></div>
+                    <div class="kpi-value">${formatNumber(k.total_customers.value)}</div>
+                    <div class="kpi-trend up">↑ ${k.total_customers.change}% <span style="color:var(--text-muted);font-weight:normal">vs last month</span></div>
                 </div>
-                <div class="chart-card animate-in animate-delay-3">
-                    <div class="chart-header">
-                        <div><div class="chart-title">Customer Segments</div><div class="chart-subtitle">Distribution by value tier</div></div>
-                        <span class="chart-badge blue">5 segments</span>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Avg CLV</span>
+                        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
                     </div>
-                    <div class="chart-container" style="height:280px"><canvas id="chart-segments"></canvas></div>
+                    <div class="kpi-value">$${k.avg_clv.value}</div>
+                    <div class="kpi-trend up">↑ ${k.avg_clv.change}% <span style="color:var(--text-muted);font-weight:normal">vs last quarter</span></div>
                 </div>
-            </div>
-            <div class="insights-grid">
-                <div class="insight-card animate-in animate-delay-3">
-                    <div class="insight-icon" style="background:rgba(16,185,129,0.12)">📈</div>
-                    <div class="insight-content"><h4>Revenue Growing</h4><p>Monthly revenue increased 12.1% year-over-year, driven by high-value segment expansion.</p></div>
-                </div>
-                <div class="insight-card animate-in animate-delay-4">
-                    <div class="insight-icon" style="background:rgba(244,63,94,0.12)">🎯</div>
-                    <div class="insight-content"><h4>Churn Declining</h4><p>Churn rate decreased 2.1% after implementing targeted retention campaigns for at-risk customers.</p></div>
-                </div>
-                <div class="insight-card animate-in animate-delay-4">
-                    <div class="insight-icon" style="background:rgba(59,130,246,0.12)">💡</div>
-                    <div class="insight-content"><h4>CLV Opportunity</h4><p>2,000 at-risk customers with above-average CLV identified. Prioritize personalized outreach.</p></div>
-                </div>
-            </div>`;
-    },
-
-    churn() {
-        const d = DashboardData.churn;
-        const m = d.metrics;
-        return `
-            <div class="metrics-grid">
-                ${metricCard('Total Churned', fmt(m.totalChurned.value), m.totalChurned.change, 'down',
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>', 'rose', 1)}
-                ${metricCard('Churn Rate', m.avgChurnRate.value + '%', m.avgChurnRate.change, 'down',
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>', 'amber', 2)}
-                ${metricCard('Predicted to Churn', fmt(m.predictedChurn.value), m.predictedChurn.change, m.predictedChurn.trend,
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>', 'purple', 3)}
-                ${metricCard('Retention Rate', m.retentionRate.value + '%', m.retentionRate.change, m.retentionRate.trend,
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', 'emerald', 4)}
-            </div>
-            <div class="charts-grid">
-                <div class="chart-card animate-in animate-delay-2">
-                    <div class="chart-header"><div><div class="chart-title">Monthly Churn Trend</div><div class="chart-subtitle">Churned vs Retained customers</div></div></div>
-                    <div class="chart-container" style="height:280px"><canvas id="chart-churn-trend"></canvas></div>
-                </div>
-                <div class="chart-card animate-in animate-delay-3">
-                    <div class="chart-header"><div><div class="chart-title">Churn Distribution</div><div class="chart-subtitle">Overall customer status</div></div></div>
-                    <div class="chart-container" style="height:280px"><canvas id="chart-churn-dist"></canvas></div>
-                </div>
-            </div>
-            <div class="charts-grid">
-                <div class="chart-card animate-in animate-delay-3">
-                    <div class="chart-header"><div><div class="chart-title">Churn Rate by Segment</div><div class="chart-subtitle">Segment-level analysis</div></div></div>
-                    <div class="chart-container" style="height:260px"><canvas id="chart-churn-segment"></canvas></div>
-                </div>
-                <div class="chart-card animate-in animate-delay-4">
-                    <div class="chart-header"><div><div class="chart-title">Top Churn Drivers</div><div class="chart-subtitle">Feature importance from XGBoost model</div></div></div>
-                    <div class="chart-container" style="height:260px"><canvas id="chart-churn-drivers"></canvas></div>
-                </div>
-            </div>`;
-    },
-
-    clv() {
-        const d = DashboardData.clv;
-        const m = d.metrics;
-        return `
-            <div class="metrics-grid">
-                ${metricCard('Avg 12-Month CLV', '$' + fmt(m.avgCLV12.value), m.avgCLV12.change, m.avgCLV12.trend,
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', 'emerald', 1)}
-                ${metricCard('Total Predicted Revenue', '$' + fmt(m.totalPredicted.value), m.totalPredicted.change, m.totalPredicted.trend,
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>', 'blue', 2)}
-                ${metricCard('High-Value Customers', fmt(m.highValueCount.value), m.highValueCount.change, m.highValueCount.trend,
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', 'purple', 3)}
-                ${metricCard('Avg Order Value', '$' + m.avgOrderValue.value, m.avgOrderValue.change, m.avgOrderValue.trend,
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>', 'cyan', 4)}
-            </div>
-            <div class="charts-grid">
-                <div class="chart-card animate-in animate-delay-2">
-                    <div class="chart-header"><div><div class="chart-title">CLV Distribution</div><div class="chart-subtitle">Customer lifetime value histogram</div></div></div>
-                    <div class="chart-container" style="height:280px"><canvas id="chart-clv-dist"></canvas></div>
-                </div>
-                <div class="chart-card animate-in animate-delay-3">
-                    <div class="chart-header"><div><div class="chart-title">CLV by Segment</div><div class="chart-subtitle">Average CLV per customer segment</div></div></div>
-                    <div class="chart-container" style="height:280px"><canvas id="chart-clv-segment"></canvas></div>
-                </div>
-            </div>`;
-    },
-
-    segmentation() {
-        const d = DashboardData.segmentation;
-        let segCards = d.segments.map((s, i) => `
-            <div class="metric-card animate-in animate-delay-${i % 4 + 1}" style="border-left: 3px solid ${s.color}">
-                <div class="metric-header"><span class="metric-label">${s.icon} ${s.name}</span></div>
-                <div class="metric-value">${fmt(s.count)}</div>
-                <div style="display:flex;gap:16px;margin-top:8px">
-                    <div><span style="font-size:0.75rem;color:var(--text-muted)">Avg Revenue</span><br><strong>$${fmt(s.avgRevenue)}</strong></div>
-                    <div><span style="font-size:0.75rem;color:var(--text-muted)">Churn Risk</span><br><strong style="color:${s.churnRisk > 0.3 ? 'var(--accent-rose)' : 'var(--accent-emerald)'}">${(s.churnRisk * 100).toFixed(0)}%</strong></div>
-                </div>
-            </div>`).join('');
-
-        return `
-            <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">${segCards}</div>
-            <div class="charts-grid">
-                <div class="chart-card animate-in animate-delay-2">
-                    <div class="chart-header"><div><div class="chart-title">Customer Clusters (K-Means)</div><div class="chart-subtitle">Revenue vs Engagement Score</div></div><span class="chart-badge purple">k=5</span></div>
-                    <div class="chart-container" style="height:320px"><canvas id="chart-clusters"></canvas></div>
-                </div>
-                <div class="chart-card animate-in animate-delay-3">
-                    <div class="chart-header"><div><div class="chart-title">Segment Distribution</div><div class="chart-subtitle">Customers per segment</div></div></div>
-                    <div class="chart-container" style="height:320px"><canvas id="chart-seg-dist"></canvas></div>
-                </div>
-            </div>`;
-    },
-
-    causal() {
-        const d = DashboardData.causal;
-        return `
-            <div class="metrics-grid">
-                <div class="metric-card rose animate-in animate-delay-1">
-                    <div class="metric-header"><span class="metric-label">Campaign ATE</span></div>
-                    <div class="metric-value">${d.metrics.campaignATE.value}%</div>
-                    <span class="metric-change up">Churn reduction</span>
-                </div>
-                <div class="metric-card emerald animate-in animate-delay-2">
-                    <div class="metric-header"><span class="metric-label">Confidence Level</span></div>
-                    <div class="metric-value">${d.metrics.confidence.value}%</div>
-                    <span class="metric-change up">Statistical significance</span>
-                </div>
-                <div class="metric-card blue animate-in animate-delay-3">
-                    <div class="metric-header"><span class="metric-label">Treated Group</span></div>
-                    <div class="metric-value">${fmt(d.metrics.treatedGroup.value)}</div>
-                    <span class="badge info">Campaign Recipients</span>
-                </div>
-                <div class="metric-card purple animate-in animate-delay-4">
-                    <div class="metric-header"><span class="metric-label">Control Group</span></div>
-                    <div class="metric-value">${fmt(d.metrics.controlGroup.value)}</div>
-                    <span class="badge info">Holdout</span>
-                </div>
-            </div>
-            <div class="charts-grid">
-                <div class="chart-card animate-in animate-delay-2">
-                    <div class="chart-header"><div><div class="chart-title">Difference-in-Differences</div><div class="chart-subtitle">Treated vs Control group churn rates</div></div></div>
-                    <div class="chart-container" style="height:280px"><canvas id="chart-did"></canvas></div>
-                </div>
-                <div class="chart-card animate-in animate-delay-3">
-                    <div class="chart-header"><div><div class="chart-title">Uplift Segmentation</div><div class="chart-subtitle">Customer response classification</div></div></div>
-                    <div class="chart-container" style="height:280px"><canvas id="chart-uplift"></canvas></div>
-                </div>
-            </div>`;
-    },
-
-    recommendations() {
-        const d = DashboardData.recommendations;
-        let rows = d.actions.map(a => `
-            <tr>
-                <td><strong>#${a.priority}</strong></td>
-                <td><strong>${a.action}</strong></td>
-                <td>${fmt(a.customers)}</td>
-                <td><span class="badge ${a.impact === 'High' ? 'high' : a.impact === 'Medium' ? 'medium' : 'low'}">${a.impact}</span></td>
-                <td><strong>${a.roi}x</strong></td>
-                <td><span class="badge info">${a.segment}</span></td>
-                <td>${a.cost}</td>
-            </tr>`).join('');
-
-        return `
-            <div class="insights-grid" style="margin-bottom:24px">
-                <div class="insight-card animate-in animate-delay-1">
-                    <div class="insight-icon" style="background:rgba(59,130,246,0.12)">🎯</div>
-                    <div class="insight-content"><h4>Top Priority</h4><p>Premium retention offers for 450 high-value customers at risk. Expected ROI: 4.2x with $45K investment.</p></div>
-                </div>
-                <div class="insight-card animate-in animate-delay-2">
-                    <div class="insight-icon" style="background:rgba(16,185,129,0.12)">💰</div>
-                    <div class="insight-content"><h4>Total Budget</h4><p>$204,400 recommended across 6 interventions targeting 6,750 customers with combined expected ROI of 2.8x.</p></div>
-                </div>
-            </div>
-            <div class="data-table-wrapper animate-in animate-delay-3">
-                <div class="data-table-header">
-                    <div class="data-table-title">Ranked Retention Interventions</div>
-                    <span class="chart-badge blue">${d.actions.length} actions</span>
-                </div>
-                <table class="data-table">
-                    <thead><tr><th>Priority</th><th>Action</th><th>Customers</th><th>Impact</th><th>ROI</th><th>Segment</th><th>Cost</th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>`;
-    },
-
-    explainability() {
-        const d = DashboardData.explainability;
-        const local = d.localExplanation;
-        let shapBars = local.features.map(f => {
-            const width = Math.abs(f.shap) * 300;
-            const color = f.direction === 'churn' ? 'var(--accent-rose)' : 'var(--accent-emerald)';
-            const label = f.direction === 'churn' ? '→ Churn' : '→ Retain';
-            return `
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-                <span style="width:180px;font-size:0.82rem;text-align:right;color:var(--text-secondary)">${f.name}</span>
-                <div style="flex:1;display:flex;align-items:center;gap:6px">
-                    <div style="height:20px;width:${width}px;background:${color};border-radius:4px;opacity:0.8;transition:width 1s ease"></div>
-                    <span style="font-size:0.75rem;color:var(--text-muted)">${f.shap > 0 ? '+' : ''}${f.shap.toFixed(2)} ${label}</span>
-                </div>
-            </div>`;
-        }).join('');
-
-        return `
-            <div class="charts-grid">
-                <div class="chart-card animate-in animate-delay-1">
-                    <div class="chart-header"><div><div class="chart-title">Global Feature Importance (SHAP)</div><div class="chart-subtitle">Mean absolute SHAP values across all predictions</div></div></div>
-                    <div class="chart-container" style="height:320px"><canvas id="chart-shap-global"></canvas></div>
-                </div>
-                <div class="chart-card animate-in animate-delay-2">
-                    <div class="chart-header">
-                        <div><div class="chart-title">Local Explanation — ${local.customer}</div><div class="chart-subtitle">Individual prediction breakdown</div></div>
-                        <span class="badge high">Churn Risk: ${(local.prediction * 100).toFixed(0)}%</span>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Churn Risk</span>
+                        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
                     </div>
-                    <div style="padding:12px 0">${shapBars}</div>
+                    <div class="kpi-value">${k.churn_rate.value}%</div>
+                    <div class="kpi-trend down">↓ ${Math.abs(k.churn_rate.change)}% <span style="color:var(--text-muted);font-weight:normal">improvement</span></div>
                 </div>
-            </div>`;
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Campaign ROI</span>
+                        <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                    </div>
+                    <div class="kpi-value">${k.campaign_roi.value}x</div>
+                    <div class="kpi-trend up">↑ ${k.campaign_roi.change}% <span style="color:var(--text-muted);font-weight:normal">net gain</span></div>
+                </div>
+            </div>
+
+            <!-- Health Overview -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Customer Health Overview</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="health-overview-chart"></canvas></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Risk Distribution</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="risk-donut-chart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Segments List -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Top Customer Segments</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Segment Name</th>
+                                <th>Customer Count</th>
+                                <th>Revenue Contribution</th>
+                                <th>Avg Churn Risk</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.top_segments.map(s => `
+                                <tr>
+                                    <td><strong>${s.name}</strong></td>
+                                    <td>${formatNumber(s.count)}</td>
+                                    <td>$${formatNumber(s.revenue)}</td>
+                                    <td>${s.churn_risk}%</td>
+                                    <td><span class="badge ${s.churn_risk < 5 ? 'badge-success' : s.churn_risk < 15 ? 'badge-warning' : 'badge-danger'}">${s.churn_risk < 5 ? 'Healthy' : s.churn_risk < 15 ? 'At Risk' : 'Critical'}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
     },
+
+    async churn() {
+        const data = await window.CustomerIQAPI.fetchData('churn');
+        const h = data.hero;
+
+        // Generate heatmap HTML
+        let heatmapHTML = `<div class="heatmap-grid">
+            <div></div> <!-- Spacer -->
+            ${data.heatmap.risk_buckets.map(b => `<div class="heatmap-col-header">${b}</div>`).join('')}
+        `;
+
+        data.heatmap.segments.forEach((seg, sIdx) => {
+            heatmapHTML += `<div class="heatmap-label">${seg}</div>`;
+            data.heatmap.data[sIdx].forEach(val => {
+                // Color scale based on percentage values
+                let bg;
+                if (val > 80) bg = '#EF4444';
+                else if (val > 50) bg = '#F59E0B';
+                else if (val > 25) bg = '#4F46E5';
+                else if (val > 10) bg = '#38BDF8';
+                else bg = '#1E293B';
+
+                heatmapHTML += `<div class="heatmap-cell" style="background:${bg}" title="${seg}: ${val}% customers">${val}%</div>`;
+            });
+        });
+        heatmapHTML += '</div>';
+
+        return `
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Churn Analytics</h1>
+                    <p class="page-subtitle">Predictive churn modeling & retention risk mitigation</p>
+                </div>
+            </div>
+
+            <!-- Hero Section -->
+            <div class="hero-stats">
+                <div class="hero-stat-card">
+                    <span class="hero-stat-label">Current Churn Rate</span>
+                    <span class="hero-stat-value" style="color:var(--color-danger)">${h.current_churn_rate}%</span>
+                    <span class="hero-stat-subtext">Down 3.1% from last month</span>
+                </div>
+                <div class="hero-stat-card">
+                    <span class="hero-stat-label">Predicted Monthly Loss</span>
+                    <span class="hero-stat-value">$${formatNumber(h.predicted_monthly_loss)}</span>
+                    <span class="hero-stat-subtext">Optimized from $54K baseline</span>
+                </div>
+                <div class="hero-stat-card">
+                    <span class="hero-stat-label">At-Risk Customers</span>
+                    <span class="hero-stat-value">${formatNumber(h.at_risk_customers)}</span>
+                    <span class="hero-stat-subtext">Flagged by XGBoost classifier</span>
+                </div>
+            </div>
+
+            <!-- Heatmap and Chart Grid -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Churn Risk Heatmap</span>
+                    </div>
+                    <div class="card-body">
+                        ${heatmapHTML}
+                        <div style="display:flex;justify-content:center;gap:16px;margin-top:16px;font-size:11px;color:var(--text-muted)">
+                            <div style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#1E293B;border-radius:2px"></span> Low Risk</div>
+                            <div style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#38BDF8;border-radius:2px"></span> Moderate</div>
+                            <div style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#4F46E5;border-radius:2px"></span> elevated</div>
+                            <div style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#F59E0B;border-radius:2px"></span> High Risk</div>
+                            <div style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#EF4444;border-radius:2px"></span> Critical</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Top Churn Drivers (SHAP Importance)</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="shap-list">
+                            ${data.shap_features.map(f => {
+                                const isPositive = f.direction === 'churn';
+                                const color = isPositive ? 'var(--color-danger)' : 'var(--color-success)';
+                                const width = Math.abs(f.impact * 100);
+                                return `
+                                    <div class="shap-row">
+                                        <div class="shap-label" title="${f.feature}">${f.feature}</div>
+                                        <div class="shap-bar-container">
+                                            <div class="shap-bar" style="width:${width}%;background:${color}"></div>
+                                        </div>
+                                        <div class="shap-value">${isPositive ? '+' : ''}${Math.round(f.impact * 100)}%</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Churn Trend Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Monthly Churn Trend Analysis</span>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container"><canvas id="churn-trend-chart"></canvas></div>
+                </div>
+            </div>
+        `;
+    },
+
+    async segmentation() {
+        const data = await window.CustomerIQAPI.fetchData('segmentation');
+        
+        return `
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Customer Segmentation</h1>
+                    <p class="page-subtitle">Interactive behavioral clustering & K-Means persona insights</p>
+                </div>
+            </div>
+
+            <!-- Segment Cards Row -->
+            <div class="segment-cards-row">
+                ${data.segments.map(s => `
+                    <div class="segment-card">
+                        <div class="segment-card-border" style="background:${s.color}"></div>
+                        <div class="segment-name" style="color:${s.color}">${s.name}</div>
+                        <div class="segment-stat">
+                            <span class="segment-stat-label">Customers</span>
+                            <span class="segment-stat-value">${formatNumber(s.count)}</span>
+                        </div>
+                        <div class="segment-stat">
+                            <span class="segment-stat-label">Avg CLV</span>
+                            <span class="segment-stat-value">$${s.avg_clv}</span>
+                        </div>
+                        <div class="segment-stat">
+                            <span class="segment-stat-label">Churn Rate</span>
+                            <span class="segment-stat-value" style="color:${s.churn_pct > 15 ? 'var(--color-danger)' : 'var(--color-success)'}">${s.churn_pct}%</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- 2D UMAP Visualisation -->
+            <div class="dashboard-grid" style="grid-template-columns: 2fr 1fr">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">2D UMAP Behavioral Projection (K-Means)</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height:350px"><canvas id="umap-scatter-chart"></canvas></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Cluster Explanations & Size</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height:350px"><canvas id="segment-pie-chart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    async clv() {
+        const data = await window.CustomerIQAPI.fetchData('clv');
+        const k = data.kpis;
+
+        return `
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">CLV Forecasting</h1>
+                    <p class="page-subtitle">Predictive CLV forecasting and customer value distribution histogram</p>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="kpis-row">
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-label">Average CLV</span></div>
+                    <div class="kpi-value">$${k.avg_clv.value}</div>
+                    <div class="kpi-trend up">↑ ${k.avg_clv.change}% <span style="color:var(--text-muted);font-weight:normal">MoM</span></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-label">Total Projected Value</span></div>
+                    <div class="kpi-value">$${formatNumber(k.total_ltv.value)}</div>
+                    <div class="kpi-trend up">↑ ${k.total_ltv.change}% <span style="color:var(--text-muted);font-weight:normal">YoY</span></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-label">High-Value Ratio</span></div>
+                    <div class="kpi-value">${k.high_value_pct.value}%</div>
+                    <div class="kpi-trend up">↑ ${k.high_value_pct.change}% <span style="color:var(--text-muted);font-weight:normal">vs benchmark</span></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-label">CAC Payback Time</span></div>
+                    <div class="kpi-value">${k.payback_months.value} mo</div>
+                    <div class="kpi-trend down">↓ ${Math.abs(k.payback_months.change)} mo <span style="color:var(--text-muted);font-weight:normal">improved</span></div>
+                </div>
+            </div>
+
+            <!-- Projection Graph & Distribution Hist -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">12-Month Revenue Projection & Forecast Confidence Bands</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="clv-projection-chart"></canvas></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Customer Value Distribution (CLV Histogram)</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="clv-dist-chart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    async causal() {
+        const data = await window.CustomerIQAPI.fetchData('causal');
+        const tc = data.treatment_control;
+        const eff = data.effects;
+
+        return `
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Causal Impact Analysis</h1>
+                    <p class="page-subtitle">Propensity score matching & Difference-in-Differences statistical evaluation</p>
+                </div>
+            </div>
+
+            <!-- Treatment and Control Card side-by-side -->
+            <div class="grid-2col">
+                <div class="card" style="border-top: 4px solid var(--color-primary)">
+                    <div class="card-header">
+                        <span class="card-title">Treatment Group (Campaign Recipients)</span>
+                        <span class="badge badge-primary">Sample Size: ${formatNumber(tc.treatment.size)}</span>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;justify-content:space-around;text-align:center">
+                            <div>
+                                <span style="font-size:12px;color:var(--text-muted)">Churn Rate</span>
+                                <div style="font-size:32px;font-weight:700;color:var(--color-danger)">${tc.treatment.churn_rate}%</div>
+                            </div>
+                            <div>
+                                <span style="font-size:12px;color:var(--text-muted)">Avg CLV Contribution</span>
+                                <div style="font-size:32px;font-weight:700;color:var(--color-success)">$${tc.treatment.avg_clv}</div>
+                            </div>
+                            <div>
+                                <span style="font-size:12px;color:var(--text-muted)">Retention Score</span>
+                                <div style="font-size:32px;font-weight:700;color:var(--color-primary-hover)">${tc.treatment.retention}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="border-top: 4px solid var(--text-muted)">
+                    <div class="card-header">
+                        <span class="card-title">Control Group (Campaign Holdout)</span>
+                        <span class="badge" style="background-color:rgba(148,163,184,0.1);color:var(--text-muted)">Sample Size: ${formatNumber(tc.control.size)}</span>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;justify-content:space-around;text-align:center">
+                            <div>
+                                <span style="font-size:12px;color:var(--text-muted)">Churn Rate</span>
+                                <div style="font-size:32px;font-weight:700;color:var(--text-muted)">${tc.control.churn_rate}%</div>
+                            </div>
+                            <div>
+                                <span style="font-size:12px;color:var(--text-muted)">Avg CLV Contribution</span>
+                                <div style="font-size:32px;font-weight:700;color:var(--text-muted)">$${tc.control.avg_clv}</div>
+                            </div>
+                            <div>
+                                <span style="font-size:12px;color:var(--text-muted)">Retention Score</span>
+                                <div style="font-size:32px;font-weight:700;color:var(--text-muted)">${tc.control.retention}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DiD and Uplift Plots -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Difference-in-Differences Campaign Plot</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="did-line-chart"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Uplift Target Segmentation</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="uplift-donut-chart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistical details row -->
+            <div class="grid-3col">
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Average Treatment Effect (ATE)</span></div>
+                    <div class="card-body" style="text-align:center">
+                        <div style="font-size:36px;font-weight:700;color:var(--color-danger)">${eff.ate.value}%</div>
+                        <span style="font-size:12px;color:var(--text-muted)">Confidence Interval: [${eff.ate.ci_lower}%, ${eff.ate.ci_upper}%]</span>
+                        <div style="margin-top:8px;font-size:11px;font-weight:600;color:var(--color-success)">Statistically Significant (p = ${eff.ate.p_value})</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Treatment on Treated (ATT)</span></div>
+                    <div class="card-body" style="text-align:center">
+                        <div style="font-size:36px;font-weight:700;color:var(--color-danger)">${eff.att.value}%</div>
+                        <span style="font-size:12px;color:var(--text-muted)">Confidence Interval: [${eff.att.ci_lower}%, ${eff.att.ci_upper}%]</span>
+                        <div style="margin-top:8px;font-size:11px;font-weight:600;color:var(--color-success)">Statistically Significant (p = ${eff.att.p_value})</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Campaign Uplift Lift</span></div>
+                    <div class="card-body" style="text-align:center">
+                        <div style="font-size:36px;font-weight:700;color:var(--color-success)">+${eff.uplift.value}%</div>
+                        <span style="font-size:12px;color:var(--text-muted)">Confidence Interval: [${eff.uplift.ci_lower}%, ${eff.uplift.ci_upper}%]</span>
+                        <div style="margin-top:8px;font-size:11px;font-weight:600;color:var(--color-success)">Statistically Significant (p = ${eff.uplift.p_value})</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    async recommendations() {
+        const data = await window.CustomerIQAPI.fetchData('recommendations');
+        
+        return `
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">AI recommendations & Interventions</h1>
+                    <p class="page-subtitle">Priority target groups for customer churn mitigation campaigns</p>
+                </div>
+            </div>
+
+            <!-- Priority Matrix and Overview Summary -->
+            <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Recommendation Matrix (Priority quadrants)</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="matrix-grid">
+                            ${data.priority_matrix.quadrants.map(q => `
+                                <div class="matrix-quadrant" style="border-color:${q.color}">
+                                    <div>
+                                        <div class="quadrant-label" style="color:${q.color}">${q.label}</div>
+                                        <div class="quadrant-desc">${q.description}</div>
+                                    </div>
+                                    <div class="quadrant-count">${formatNumber(q.count)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Active AI Decision Engine Summary</span>
+                    </div>
+                    <div class="card-body" style="display:flex;flex-direction:column;justify-content:space-between;height:100%">
+                        <div style="font-size:14px;line-height:1.6;color:var(--text-secondary)">
+                            ${data.summary}
+                        </div>
+                        <div style="margin-top:20px;padding:16px;background-color:rgba(79, 70, 229, 0.05);border:1px solid rgba(79, 70, 229, 0.2);border-radius:var(--radius-md)">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div>
+                                    <div style="font-size:12px;color:var(--text-muted)">Expected ROI</div>
+                                    <div style="font-size:24px;font-weight:700;color:var(--color-success)">4.2x</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:12px;color:var(--text-muted)">Investments</div>
+                                    <div style="font-size:24px;font-weight:700;color:var(--text-primary)">$340,000</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendation Feed Cards -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Active Action Recommendation Feed</span>
+                </div>
+                <div class="card-body" style="display:flex;flex-direction:column;gap:16px">
+                    <div class="rec-cards-list">
+                        ${data.cards.map(c => `
+                            <div class="rec-card priority-${c.priority}">
+                                <div class="rec-header">
+                                    <span class="rec-segment">${c.segment}</span>
+                                    <span class="badge ${c.priority === 'critical' ? 'badge-danger' : c.priority === 'high' ? 'badge-warning' : 'badge-primary'}">${c.priority.toUpperCase()} PRIORITY</span>
+                                </div>
+                                <div class="rec-body">
+                                    <div>
+                                        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">Target Action Recommendation</div>
+                                        <div style="font-size:15px;font-weight:600;color:var(--text-primary)">${c.recommendation}</div>
+                                    </div>
+                                    <div class="rec-stats">
+                                        <div class="rec-stat">
+                                            <span class="rec-stat-label">Segment Size</span>
+                                            <span class="rec-stat-value">${formatNumber(c.customer_count)} users</span>
+                                        </div>
+                                        <div class="rec-stat">
+                                            <span class="rec-stat-label">Churn Risk</span>
+                                            <span class="rec-stat-value" style="color:var(--color-danger)">${c.predicted_churn}%</span>
+                                        </div>
+                                        <div class="rec-stat">
+                                            <span class="rec-stat-label">Expected Lift</span>
+                                            <span class="rec-stat-value" style="color:var(--color-success)">+${c.expected_lift}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rec-footer">
+                                    <span style="font-size:12px;color:var(--text-muted)">Estimated Potential Recoverable Revenue: <strong style="color:var(--text-primary)">$${formatNumber(c.estimated_revenue_saved)}</strong></span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 };
 
-// Chart initializers per page
+// Initializers for charts
 const ChartInitializers = {
-    overview() {
-        const d = DashboardData.overview;
-        createLineChart('chart-revenue', d.revenueByMonth.labels, [{
-            label: 'Revenue', data: d.revenueByMonth.data, borderColor: '#10b981',
-        }], { scales: { y: { ...getChartOptions().scales.y, ticks: { ...getChartOptions().scales.y.ticks, callback: v => '$' + (v / 1000) + 'K' } } } });
-        createDoughnutChart('chart-segments', d.segmentDistribution.labels, d.segmentDistribution.data, d.segmentDistribution.colors);
+    async dashboard() {
+        const data = await window.CustomerIQAPI.fetchData('dashboard');
+        
+        // Health Overview Line chart
+        const ctxOverview = document.getElementById('health-overview-chart');
+        if (ctxOverview) {
+            createChart('health-overview-chart', {
+                type: 'line',
+                data: {
+                    labels: data.revenue_trend.labels,
+                    datasets: [
+                        {
+                            label: 'Revenue Projection ($)',
+                            data: data.revenue_trend.data,
+                            borderColor: ChartColors.primary,
+                            backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2,
+                        },
+                        {
+                            label: 'Customer Retention Rate (%)',
+                            data: data.retention_trend.data,
+                            borderColor: ChartColors.accent,
+                            backgroundColor: 'transparent',
+                            yAxisID: 'y1',
+                            tension: 0.4,
+                            borderWidth: 2,
+                        }
+                    ]
+                },
+                options: getChartOptions({
+                    scales: {
+                        y: {
+                            grid: { color: getThemeGridColor() },
+                            ticks: {
+                                color: getThemeTextColor(),
+                                callback: v => '$' + formatNumber(v)
+                            }
+                        },
+                        y1: {
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: {
+                                color: getThemeTextColor(),
+                                callback: v => v + '%'
+                            }
+                        }
+                    }
+                })
+            });
+        }
+
+        // Donut Chart for risk
+        const ctxDonut = document.getElementById('risk-donut-chart');
+        if (ctxDonut) {
+            createChart('risk-donut-chart', {
+                type: 'doughnut',
+                data: {
+                    labels: data.risk_distribution.labels,
+                    datasets: [{
+                        data: data.risk_distribution.data,
+                        backgroundColor: data.risk_distribution.colors,
+                        borderWidth: 2,
+                        borderColor: getThemeGridColor()
+                    }]
+                },
+                options: getChartOptions({
+                    plugins: {
+                        legend: { display: true, position: 'right' }
+                    }
+                })
+            });
+        }
     },
-    churn() {
-        const d = DashboardData.churn;
-        createLineChart('chart-churn-trend', d.monthlyTrend.labels, [
-            { label: 'Churned', data: d.monthlyTrend.churned, borderColor: '#f43f5e' },
-            { label: 'Retained', data: d.monthlyTrend.retained, borderColor: '#10b981' },
-        ], { plugins: { legend: { display: true } } });
-        createDoughnutChart('chart-churn-dist', d.distribution.labels, d.distribution.data, d.distribution.colors);
-        const segColors = d.bySegment.data.map(v => v > 0.4 ? '#f43f5e' : v > 0.2 ? '#f59e0b' : '#10b981');
-        createBarChart('chart-churn-segment', d.bySegment.labels, [{ label: 'Churn Rate', data: d.bySegment.data, backgroundColor: segColors }],
-            { scales: { y: { ...getChartOptions().scales.y, ticks: { ...getChartOptions().scales.y.ticks, callback: v => (v * 100) + '%' } } } });
-        const driverColors = d.drivers.data.map((_, i) => `hsl(${220 + i * 20}, 70%, ${55 + i * 3}%)`);
-        createHorizontalBarChart('chart-churn-drivers', d.drivers.labels, d.drivers.data, driverColors);
+
+    async churn() {
+        const data = await window.CustomerIQAPI.fetchData('churn');
+        const ctxChurn = document.getElementById('churn-trend-chart');
+        if (ctxChurn) {
+            createChart('churn-trend-chart', {
+                type: 'line',
+                data: {
+                    labels: data.monthly_trend.labels,
+                    datasets: [
+                        {
+                            label: 'Churn Rate (%)',
+                            data: data.monthly_trend.churn_rate,
+                            borderColor: ChartColors.danger,
+                            backgroundColor: 'transparent',
+                            tension: 0.4,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Customers Lost',
+                            data: data.monthly_trend.customers_lost,
+                            borderColor: ChartColors.warning,
+                            backgroundColor: 'transparent',
+                            yAxisID: 'y1',
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: getChartOptions({
+                    scales: {
+                        y: {
+                            ticks: { callback: v => v + '%' }
+                        },
+                        y1: {
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { callback: v => formatNumber(v) }
+                        }
+                    }
+                })
+            });
+        }
     },
-    clv() {
-        const d = DashboardData.clv;
-        const distLabels = d.distribution.map((_, i) => '$' + (i * 500));
-        createBarChart('chart-clv-dist', distLabels, [{ label: 'Customers', data: d.distribution, backgroundColor: '#3b82f6' }]);
-        const segColors = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#64748b'];
-        createBarChart('chart-clv-segment', d.bySegment.labels, [{ label: 'Avg CLV', data: d.bySegment.data, backgroundColor: segColors }],
-            { scales: { y: { ...getChartOptions().scales.y, ticks: { ...getChartOptions().scales.y.ticks, callback: v => '$' + v } } } });
+
+    async segmentation() {
+        const data = await window.CustomerIQAPI.fetchData('segmentation');
+        
+        // Scatter plot representation
+        const ctxScatter = document.getElementById('umap-scatter-chart');
+        if (ctxScatter) {
+            const datasets = Object.keys(data.clusters).map(name => {
+                const segInfo = data.segments.find(s => s.name === name);
+                const points = data.clusters[name].x.map((xVal, i) => ({
+                    x: xVal,
+                    y: data.clusters[name].y[i]
+                }));
+                return {
+                    label: name,
+                    data: points,
+                    backgroundColor: segInfo ? segInfo.color : '#FFFFFF',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                };
+            });
+
+            createChart('umap-scatter-chart', {
+                type: 'scatter',
+                data: { datasets },
+                options: getChartOptions({
+                    plugins: {
+                        legend: { display: true, position: 'top' }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Feature Dim 1 (Revenue Factor)', color: getThemeTextColor() } },
+                        y: { title: { display: true, text: 'Feature Dim 2 (Engagement Factor)', color: getThemeTextColor() } }
+                    }
+                })
+            });
+        }
+
+        // Pie chart for sizes
+        const ctxPie = document.getElementById('segment-pie-chart');
+        if (ctxPie) {
+            createChart('segment-pie-chart', {
+                type: 'pie',
+                data: {
+                    labels: data.segments.map(s => s.name),
+                    datasets: [{
+                        data: data.segments.map(s => s.count),
+                        backgroundColor: data.segments.map(s => s.color),
+                        borderColor: getThemeGridColor(),
+                        borderWidth: 1
+                    }]
+                },
+                options: getChartOptions({
+                    plugins: {
+                        legend: { display: true, position: 'right' }
+                    }
+                })
+            });
+        }
     },
-    segmentation() {
-        const d = DashboardData.segmentation;
-        const colors = d.segments.map(s => s.color);
-        const datasets = d.clusterData.clusters.map((c, i) => ({
-            label: d.segments[i].name,
-            data: c.x.map((x, j) => ({ x, y: c.y[j] })),
-            backgroundColor: colors[i] + '90', pointRadius: 4, pointHoverRadius: 6,
-        }));
-        createScatterChart('chart-clusters', datasets, {
-            plugins: { legend: { display: true } },
-            scales: { x: { ...getChartOptions().scales.x, title: { display: true, text: 'Revenue Score', color: '#94a3b8' } },
-                      y: { ...getChartOptions().scales.y, title: { display: true, text: 'Engagement Score', color: '#94a3b8' } } },
-        });
-        createDoughnutChart('chart-seg-dist', d.segments.map(s => s.name), d.segments.map(s => s.count), colors);
+
+    async clv() {
+        const data = await window.CustomerIQAPI.fetchData('clv');
+        const proj = data.projection;
+
+        // Line projection chart
+        const ctxProj = document.getElementById('clv-projection-chart');
+        if (ctxProj) {
+            createChart('clv-projection-chart', {
+                type: 'line',
+                data: {
+                    labels: proj.labels,
+                    datasets: [
+                        {
+                            label: 'Historical Revenue ($)',
+                            data: proj.actual,
+                            borderColor: ChartColors.primary,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Forecast ($)',
+                            data: proj.forecast,
+                            borderColor: ChartColors.accent,
+                            borderDash: [5, 5],
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Confidence Interval (Upper)',
+                            data: proj.upper,
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            fill: '+1', // Fill to next dataset (lower)
+                            tension: 0.3,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Confidence Interval (Lower)',
+                            data: proj.lower,
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            fill: '-1',
+                            tension: 0.3,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: getChartOptions({
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: { ticks: { callback: v => '$' + formatNumber(v) } }
+                    }
+                })
+            });
+        }
+
+        // CLV histogram distribution
+        const ctxDist = document.getElementById('clv-dist-chart');
+        if (ctxDist) {
+            createChart('clv-dist-chart', {
+                type: 'bar',
+                data: {
+                    labels: data.distribution.labels,
+                    datasets: [{
+                        label: 'Customers Count',
+                        data: data.distribution.counts,
+                        backgroundColor: ChartColors.primary,
+                        borderRadius: 4
+                    }]
+                },
+                options: getChartOptions({
+                    scales: {
+                        y: { ticks: { callback: v => formatNumber(v) } }
+                    }
+                })
+            });
+        }
     },
-    causal() {
-        const d = DashboardData.causal;
-        createBarChart('chart-did', d.didResults.labels, [
-            { label: 'Treated', data: d.didResults.treated, backgroundColor: '#3b82f6' },
-            { label: 'Control', data: d.didResults.control, backgroundColor: '#64748b' },
-        ], { plugins: { legend: { display: true } }, scales: { y: { ...getChartOptions().scales.y, ticks: { ...getChartOptions().scales.y.ticks, callback: v => (v * 100) + '%' } } } });
-        createDoughnutChart('chart-uplift', d.upliftSegments.labels, d.upliftSegments.data, d.upliftSegments.colors);
-    },
-    explainability() {
-        const d = DashboardData.explainability;
-        const colors = d.globalImportance.data.map((v, i) => `hsl(${220 + i * 15}, 70%, ${55 + i * 2}%)`);
-        createHorizontalBarChart('chart-shap-global', d.globalImportance.labels, d.globalImportance.data, colors);
-    },
+
+    async causal() {
+        const data = await window.CustomerIQAPI.fetchData('causal');
+        const did = data.did_plot;
+
+        // DiD Plot using lines
+        const ctxDid = document.getElementById('did-line-chart');
+        if (ctxDid) {
+            createChart('did-line-chart', {
+                type: 'line',
+                data: {
+                    labels: did.labels,
+                    datasets: [
+                        {
+                            label: 'Treatment Group (Campaign)',
+                            data: did.treatment,
+                            borderColor: ChartColors.primary,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Control Group (Holdout)',
+                            data: did.control,
+                            borderColor: ChartColors.textMuted,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: getChartOptions({
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: { ticks: { callback: v => v + '%' } }
+                    }
+                })
+            });
+        }
+
+        // Uplift target donut
+        const ctxUplift = document.getElementById('uplift-donut-chart');
+        if (ctxUplift) {
+            createChart('uplift-donut-chart', {
+                type: 'doughnut',
+                data: {
+                    labels: data.uplift_segments.labels,
+                    datasets: [{
+                        data: data.uplift_segments.counts,
+                        backgroundColor: data.uplift_segments.colors,
+                        borderWidth: 2,
+                        borderColor: getThemeGridColor()
+                    }]
+                },
+                options: getChartOptions({
+                    plugins: {
+                        legend: { display: true, position: 'right' }
+                    }
+                })
+            });
+        }
+    }
 };
