@@ -1,10 +1,10 @@
-/**
- * CustomerIQ - API Communication Layer
- */
+import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:8000' 
+    : `http://${window.location.hostname}:8000`;
 
-const MockData = {
+export const MockData = {
     dashboard: {
         kpis: {
             total_customers: { value: 125842, change: 8.2, trend: "up" },
@@ -206,48 +206,25 @@ const MockData = {
     }
 };
 
-window.CustomerIQAPI = {
-    isOnline: false,
-
+export const CustomerIQAPI = {
     async checkConnection() {
         try {
-            const res = await fetch(`${API_BASE_URL}/health`, { method: 'GET', signal: AbortSignal.timeout(2000) });
-            this.isOnline = res.ok;
+            const res = await axios.get(`${API_BASE_URL}/health`, { timeout: 2000 });
+            return res.status === 200;
         } catch (e) {
-            this.isOnline = false;
-        }
-        this.updateStatusUI();
-        return this.isOnline;
-    },
-
-    updateStatusUI() {
-        const indicator = document.querySelector('.status-indicator');
-        const text = document.querySelector('.connection-status span');
-        if (indicator && text) {
-            if (this.isOnline) {
-                indicator.className = 'status-indicator online';
-                text.textContent = 'API Connected';
-            } else {
-                indicator.className = 'status-indicator offline';
-                text.textContent = 'Demo Mode (Offline)';
-            }
+            return false;
         }
     },
 
     async fetchData(endpoint) {
-        if (this.isOnline) {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/${endpoint}`);
-                if (res.ok) {
-                    return await res.json();
-                }
-            } catch (e) {
-                console.warn(`Fetch error for endpoint '${endpoint}':`, e);
+        try {
+            const res = await axios.get(`${API_BASE_URL}/api/${endpoint}`);
+            if (res.status === 200) {
+                return res.data;
             }
+        } catch (e) {
+            console.warn(`Fetch error for endpoint '${endpoint}', falling back to mock data:`, e);
         }
-        // Fallback to mock data
-        return new Promise((resolve) => {
-            setTimeout(() => resolve(MockData[endpoint]), 100);
-        });
+        return MockData[endpoint];
     }
 };

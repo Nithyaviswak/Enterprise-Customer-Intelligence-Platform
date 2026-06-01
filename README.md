@@ -5,7 +5,8 @@
   <img src="https://img.shields.io/badge/XGBoost-189FDD?style=for-the-badge&logo=xgboost&logoColor=white" alt="XGBoost">
   <img src="https://img.shields.io/badge/SHAP-4B0082?style=for-the-badge" alt="SHAP">
   <img src="https://img.shields.io/badge/MLflow-0194E2?style=for-the-badge&logo=mlflow&logoColor=white" alt="MLflow">
-  <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chart.js&logoColor=white" alt="Chart.js">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
+  <img src="https://img.shields.io/badge/ECharts-AA2116?style=for-the-badge&logo=apacheecharts&logoColor=white" alt="Apache ECharts">
 </p>
 
 <h1 align="center">🧠 Enterprise Customer Intelligence Platform</h1>
@@ -47,7 +48,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        FRONTEND (HTML/JS/CSS)                       │
+│                      FRONTEND (React + Vite)                         │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
 │  │ Overview  │ │  Churn   │ │   CLV    │ │ Segments │ │  Causal  │ │
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘ │
@@ -121,11 +122,19 @@ cp .env.example .env
 python run.py
 ```
 
-The API will be available at **http://localhost:8000** and the interactive dashboard at **http://localhost:8000/dashboard**.
+The API will be available at **http://localhost:8000**.
 
-### 6. Open the Frontend Directly
+### 6. Run the React Frontend
 
-You can also open `frontend/index.html` directly in your browser for a standalone demo (no server required — runs with simulated data).
+Navigate to the frontend folder, install the required node packages, and run the development server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The React frontend dashboard will be available at **http://localhost:5173**.
 
 ---
 
@@ -160,13 +169,16 @@ Enterprise-Customer-Intelligence-Platform/
 │   └── dashboard/
 │       └── app.py                  # Streamlit dashboard (alternative UI)
 │
-├── frontend/                       # Interactive web dashboard
-│   ├── index.html                  # Main SPA entry point
-│   ├── styles.css                  # Design system (dark/light themes)
-│   ├── app.js                      # Navigation & lifecycle controller
-│   ├── pages.js                    # Page renderers & chart initializers
-│   ├── charts.js                   # Chart.js configuration layer
-│   └── data.js                     # Simulated data for demo mode
+├── frontend/                       # React + Vite web dashboard
+│   ├── index.html                  # Main entry point
+│   ├── vite.config.js              # Vite configuration
+│   ├── package.json                # Frontend dependencies & scripts
+│   ├── public/                     # Static assets
+│   └── src/                        # React source code
+│       ├── App.jsx                 # Root component
+│       ├── App.css                 # Global styling
+│       └── main.jsx                # Application entry point
+│       └── ...                     # Components and state layers
 │
 ├── config/
 │   └── __init__.py                 # Centralized configuration
@@ -310,7 +322,7 @@ curl -X POST http://localhost:8000/predict/churn \
 
 ## 📊 Dashboard
 
-The platform includes a **7-page interactive dashboard** built with vanilla HTML/CSS/JS and Chart.js:
+The platform includes a **7-page interactive dashboard** built with **React** and **Apache ECharts**:
 
 | Page | Visualizations |
 |------|---------------|
@@ -339,7 +351,7 @@ The platform includes a **7-page interactive dashboard** built with vanilla HTML
 | **Causal** | DoWhy, EconML, CausalML |
 | **Explainability** | SHAP |
 | **API** | FastAPI, Uvicorn, Pydantic |
-| **Frontend** | HTML5, CSS3, JavaScript ES6+, Chart.js |
+| **Frontend** | React, Vite, Apache ECharts, CSS3, ES6+ |
 | **MLOps** | MLflow, Joblib |
 | **Data** | Pandas, NumPy, SciPy |
 | **Visualization** | Plotly, Matplotlib, Seaborn |
