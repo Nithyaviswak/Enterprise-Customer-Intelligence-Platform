@@ -7,6 +7,42 @@ import ClvPage from './components/ClvPage';
 import CausalPage from './components/CausalPage';
 import RecommendationsPage from './components/RecommendationsPage';
 
+const SEARCH_INDEX = [
+  // Pages/Tabs
+  { name: 'Executive Dashboard', type: 'page', tabId: 'dashboard', icon: '📊' },
+  { name: 'Churn Analytics & Drivers', type: 'page', tabId: 'churn', icon: '📈' },
+  { name: 'Customer Segmentation Clusters', type: 'page', tabId: 'segmentation', icon: '👥' },
+  { name: 'CLV Forecasting & Projections', type: 'page', tabId: 'clv', icon: '💰' },
+  { name: 'Causal Impact & Lift Analysis', type: 'page', tabId: 'causal', icon: '🧪' },
+  { name: 'AI Recommendations Feed', type: 'page', tabId: 'recommendations', icon: '💡' },
+
+  // Segments
+  { name: 'VIP Customer Segment', type: 'segment', query: 'VIP', tabId: 'segmentation', icon: '👑' },
+  { name: 'Loyal Customer Segment', type: 'segment', query: 'Loyal', tabId: 'segmentation', icon: '🤝' },
+  { name: 'Growth Customer Segment', type: 'segment', query: 'Growth', tabId: 'segmentation', icon: '⚡' },
+  { name: 'At-Risk Customer Segment', type: 'segment', query: 'At-Risk', tabId: 'segmentation', icon: '⚠️' },
+  { name: 'Dormant Customer Segment', type: 'segment', query: 'Dormant', tabId: 'segmentation', icon: '😴' },
+
+  // Recommendations
+  { name: 'Offer Premium Retention Package', type: 'recommendation', query: 'Premium Retention', tabId: 'recommendations', icon: '🎁' },
+  { name: 'Personalized Upsell Campaign', type: 'recommendation', query: 'Upsell', tabId: 'recommendations', icon: '🚀' },
+  { name: 'Loyalty Reward Acceleration', type: 'recommendation', query: 'Loyalty Reward', tabId: 'recommendations', icon: '✨' },
+  { name: 'Enhanced Onboarding Sequence', type: 'recommendation', query: 'Onboarding', tabId: 'recommendations', icon: '🏁' },
+  { name: 'Win-Back Email + Discount', type: 'recommendation', query: 'Win-Back', tabId: 'recommendations', icon: '✉️' },
+
+  // Churn Drivers
+  { name: 'Support Tickets Impact', type: 'driver', query: 'Support Tickets', tabId: 'churn', icon: '🎫' },
+  { name: 'Days Since Last Login Impact', type: 'driver', query: 'Days Since Last Login', tabId: 'churn', icon: '📅' },
+  { name: 'Monthly Spend Decline Impact', type: 'driver', query: 'Monthly Spend Decline', tabId: 'churn', icon: '📉' },
+  { name: 'Low Engagement Score Impact', type: 'driver', query: 'Low Engagement Score', tabId: 'churn', icon: '📴' },
+  { name: 'Contract Type (Monthly) Impact', type: 'driver', query: 'Contract Type', tabId: 'churn', icon: '📄' },
+  { name: 'Payment Failures Impact', type: 'driver', query: 'Payment Failures', tabId: 'churn', icon: '❌' },
+  { name: 'Loyalty Points Balance Impact', type: 'driver', query: 'Loyalty Points', tabId: 'churn', icon: '🏆' },
+  { name: 'Feature Adoption Rate Impact', type: 'driver', query: 'Feature Adoption', tabId: 'churn', icon: '⚙️' },
+  { name: 'NPS Score Impact', type: 'driver', query: 'NPS Score', tabId: 'churn', icon: '💬' },
+  { name: 'Account Tenure Impact', type: 'driver', query: 'Account Tenure', tabId: 'churn', icon: '⏳' },
+];
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [theme, setTheme] = useState(() => localStorage.getItem('customeriq-theme') || 'dark');
@@ -15,6 +51,7 @@ export default function App() {
   const [currentDate, setCurrentDate] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     // Set theme class on html document element
@@ -42,6 +79,96 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleItemSelect = (item) => {
+    setCurrentPage(item.tabId);
+    if (item.query) {
+      setSearchQuery(item.query);
+    } else {
+      setSearchQuery('');
+    }
+    setIsSearchFocused(false);
+  };
+
+  const getFilteredSearchResults = () => {
+    if (!searchQuery.trim()) {
+      return [
+        { name: 'Go to Churn Analytics', type: 'suggested', tabId: 'churn', icon: '📈' },
+        { name: 'Filter by VIP Segment', type: 'suggested', query: 'VIP', tabId: 'segmentation', icon: '👑' },
+        { name: 'Review Upsell Recommendation', type: 'suggested', query: 'Upsell', tabId: 'recommendations', icon: '🚀' },
+        { name: 'Analyze Support Tickets Driver', type: 'suggested', query: 'Support Tickets', tabId: 'churn', icon: '🎫' },
+      ];
+    }
+
+    const queryLower = searchQuery.toLowerCase();
+    return SEARCH_INDEX.filter(item => 
+      item.name.toLowerCase().includes(queryLower) ||
+      (item.query && item.query.toLowerCase().includes(queryLower)) ||
+      item.type.toLowerCase().includes(queryLower)
+    );
+  };
+
+  const renderSearchResults = () => {
+    const results = getFilteredSearchResults();
+    
+    if (results.length === 0) {
+      return <div className="search-no-results">No matches found for "{searchQuery}"</div>;
+    }
+
+    if (!searchQuery.trim()) {
+      return (
+        <div className="search-section">
+          <div className="search-section-title">Suggested Searches</div>
+          {results.map((item, idx) => (
+            <div
+              key={idx}
+              className="search-item"
+              onMouseDown={() => handleItemSelect(item)}
+            >
+              <span className="search-item-icon">{item.icon}</span>
+              <span className="search-item-text">{item.name}</span>
+              <span className="search-item-badge">Quick Link</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Group by category
+    const categories = {
+      page: { title: 'Navigate Pages', items: [] },
+      segment: { title: 'Customer Segments', items: [] },
+      recommendation: { title: 'AI Recommendations', items: [] },
+      driver: { title: 'Churn Drivers', items: [] },
+    };
+
+    results.forEach(item => {
+      if (categories[item.type]) {
+        categories[item.type].items.push(item);
+      }
+    });
+
+    return Object.keys(categories).map(catKey => {
+      const cat = categories[catKey];
+      if (cat.items.length === 0) return null;
+      return (
+        <div className="search-section" key={catKey}>
+          <div className="search-section-title">{cat.title}</div>
+          {cat.items.map((item, idx) => (
+            <div
+              key={idx}
+              className="search-item"
+              onMouseDown={() => handleItemSelect(item)}
+            >
+              <span className="search-item-icon">{item.icon}</span>
+              <span className="search-item-text">{item.name}</span>
+              <span className="search-item-badge">{item.type.toUpperCase()}</span>
+            </div>
+          ))}
+        </div>
+      );
+    });
+  };
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
@@ -207,6 +334,8 @@ export default function App() {
               id="global-search" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
             />
             {searchQuery && (
               <button 
@@ -227,6 +356,11 @@ export default function App() {
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
               </button>
+            )}
+            {isSearchFocused && (
+              <div className="search-dropdown">
+                {renderSearchResults()}
+              </div>
             )}
           </div>
           <div className="topbar-right">
