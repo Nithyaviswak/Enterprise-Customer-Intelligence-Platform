@@ -1,0 +1,42 @@
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          MODULE STRUCTURE                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+evaluation/
+├── __init__.py              # Package exports
+├── config.py                # EvaluationConfig, YOLOConfig
+├── types.py                 # Data classes for metrics and results
+├── metrics.py               # MetricsComputer - core metric computation
+├── harness.py               # EvaluationHarness - orchestration engine
+├── regression.py            # RegressionTracker - version comparison
+├── benchmark.py             # CLI entry point (python -m evaluation.benchmark)
+│
+├── visualization/
+│   ├── __init__.py
+│   ├── confusion_matrix.py  # plot_confusion_matrix()
+│   ├── pr_curves.py         # plot_pr_curves(), plot_mean_pr_curve()
+│   └── failure_cases.py     # FailureCaseVisualizer with FP/FN galleries
+│
+├── reports/
+│   ├── __init__.py
+│   ├── html_report.py       # HTMLReportGenerator
+│   ├── csv_report.py        # CSVReportGenerator
+│   └── json_report.py       # JSONReportGenerator
+│
+├── tracking/
+│   ├── __init__.py
+│   ├── mlflow_tracker.py    # MLflowEvaluationTracker
+│   └── wandb_tracker.py     # WandBEvaluationTracker
+│
+├── registry/
+│   ├── __init__.py
+│   ├── experiment_registry.py  # ExperimentRegistry (SQLite)
+│   └── leaderboard.py          # ModelLeaderboard
+│
+├── dashboard/
+│   ├── __init__.py
+│   └── app.py               # Streamlit dashboard
+│
+└── assets/
+    └── architecture.py      # This file - diagram generator

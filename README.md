@@ -7,23 +7,27 @@
   <img src="https://img.shields.io/badge/MLflow-0194E2?style=for-the-badge&logo=mlflow&logoColor=white" alt="MLflow">
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
   <img src="https://img.shields.io/badge/ECharts-AA2116?style=for-the-badge&logo=apacheecharts&logoColor=white" alt="Apache ECharts">
+  <img src="https://img.shields.io/badge/YOLOv8-00FFFF?style=for-the-badge&logo=ultralytics&logoColor=black" alt="YOLOv8">
+  <img src="https://img.shields.io/badge/WandB-FFBE00?style=for-the-badge&logo=weightsandbiases&logoColor=black" alt="Weights & Biases">
+  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit">
 </p>
 
 <h1 align="center">🧠 Enterprise Customer Intelligence Platform</h1>
+<h3 align="center">➕ YOLOv8 Retail Intelligence Evaluation Platform</h3>
 
 <p align="center">
-  <strong>An end-to-end ML platform for predicting customer churn, forecasting lifetime value, and optimizing retention strategies using causal inference and explainable AI.</strong>
+  <strong>An end-to-end ML platform for predicting customer churn, forecasting lifetime value, optimizing retention strategies, AND evaluating YOLOv8 retail object detection models at enterprise scale.</strong>
 </p>
 
 <p align="center">
   <a href="#-features">Features</a> •
+  <a href="#-evaluation-platform">Evaluation Platform</a> •
   <a href="#-architecture">Architecture</a> •
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-project-structure">Structure</a> •
-  <a href="#-ml-pipeline">ML Pipeline</a> •
-  <a href="#-api-reference">API</a> •
+  <a href="#-benchmark-cli">Benchmark CLI</a> •
   <a href="#-dashboard">Dashboard</a> •
-  <a href="#-contributing">Contributing</a>
+  <a href="#-ci-cd">CI/CD</a>
 </p>
 
 ---
@@ -44,7 +48,57 @@
 
 ---
 
-## 🏗 Architecture
+## 🎯 Evaluation Platform
+
+### YOLOv8 Retail Intelligence Evaluation
+
+The platform now includes a production-grade **YOLOv8 evaluation harness** for retail object detection models, featuring 20+ evaluation capabilities:
+
+| Capability | Description |
+|------------|-------------|
+| **Evaluation Harness** | Precision, Recall, F1, mAP50, mAP50-95, FPS, Latency, GPU Memory, Model Size, Inference Cost |
+| **Regression Tracking** | Compare model_v1 vs v2 vs v3 with automatic regression detection |
+| **Confusion Matrix** | Per-class confusion matrix with normalized/unnormalized views |
+| **Precision-Recall Curves** | Per-class and mean PR curves with confidence intervals |
+| **Failure Case Visualization** | False positive and false negative galleries with bounding box overlays |
+| **Per-Class Metrics** | Detailed breakdown by class (precision, recall, F1, AP50, support, TP/FP/FN) |
+| **Automated Benchmark CLI** | `python -m evaluation.benchmark` with evaluate/benchmark/compare/leaderboard/all commands |
+| **MLflow Integration** | Log metrics, artifacts, images, checkpoints, model registry |
+| **WandB Dashboard** | Real-time experiment tracking with rich visualizations |
+| **GitHub Actions** | Auto-evaluate on model changes, PR comments with results |
+| **HTML Reports** | Self-contained interactive evaluation reports with embedded visualizations |
+| **CSV Reports** | Tabular results for spreadsheet analysis |
+| **JSON Reports** | Machine-readable results for programmatic consumption |
+| **Streamlit Dashboard** | Full-featured dashboard with leaderboard, comparison, trends, per-class analysis |
+| **Experiment Registry** | SQLite-backed persistence for experiment metadata and results |
+| **Model Leaderboard** | Single-metric and composite-score model ranking |
+
+### Benchmark CLI
+
+```bash
+# Full evaluation
+python -m evaluation.benchmark evaluate --model models/yolov8n.pt --dataset data/val
+
+# Speed benchmark only
+python -m evaluation.benchmark benchmark --model models/yolov8n.pt --dataset data/val
+
+# Compare model versions
+python -m evaluation.benchmark compare --baseline v1 --candidate v2 --model-name retail_model
+
+# Generate leaderboard
+python -m evaluation.benchmark leaderboard --metric mAP50 --top-k 20
+
+# Run full pipeline
+python -m evaluation.benchmark all --model models/yolov8n.pt --dataset data/val
+```
+
+### Streamlit Dashboard
+
+```bash
+streamlit run evaluation/dashboard/app.py
+```
+
+---
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -183,12 +237,28 @@ Enterprise-Customer-Intelligence-Platform/
 ├── config/
 │   └── __init__.py                 # Centralized configuration
 │
+├── evaluation/                     # YOLOv8 Evaluation Platform (NEW)
+│   ├── __init__.py                 # Package exports
+│   ├── config.py                   # Evaluation & YOLO configuration
+│   ├── types.py                    # Data classes (EvaluationResult, MetricsSnapshot, ...)
+│   ├── metrics.py                  # MetricsComputer - core detection metrics
+│   ├── harness.py                  # EvaluationHarness - orchestration engine
+│   ├── regression.py               # RegressionTracker - version comparison
+│   ├── benchmark.py                # CLI entry point
+│   ├── visualization/              # Confusion matrix, PR curves, FP/FN galleries
+│   ├── reports/                    # HTML, CSV, JSON report generators
+│   ├── tracking/                   # MLflow & WandB integrations
+│   ├── registry/                   # Experiment registry & model leaderboard
+│   ├── dashboard/                  # Streamlit evaluation dashboard
+│   └── assets/                     # Architecture diagram generator
+│
 ├── src/                            # Legacy source modules (mirrored in backend/)
 ├── data/                           # Data files (gitignored)
 ├── models/                         # Trained model artifacts (gitignored)
 ├── tests/                          # Unit & integration tests
 ├── notebooks/                      # Jupyter notebooks for exploration
 ├── docs/                           # Documentation
+├── .github/workflows/              # GitHub Actions CI/CD for evaluation
 │
 ├── .env                            # Environment variables (gitignored)
 ├── .gitignore                      # Git ignore rules
@@ -355,6 +425,10 @@ The platform includes a **7-page interactive dashboard** built with **React** an
 | **MLOps** | MLflow, Joblib |
 | **Data** | Pandas, NumPy, SciPy |
 | **Visualization** | Plotly, Matplotlib, Seaborn |
+| **Computer Vision** | Ultralytics YOLOv8, OpenCV |
+| **Evaluation Tracking** | MLflow, Weights & Biases, SQLite |
+| **Dashboard** | Streamlit, Plotly |
+| **CI/CD** | GitHub Actions |
 | **Database** | PostgreSQL, SQLAlchemy |
 | **Testing** | Pytest |
 

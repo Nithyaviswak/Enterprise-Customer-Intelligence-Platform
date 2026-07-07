@@ -82,5 +82,6 @@ secrets.yaml
 # Docker
 docker-compose.override.yml
 
-# CI/CD
-.github/
+# Evaluation output
+evaluation_output/
+*.db

@@ -44,3 +44,19 @@ DASHBOARD_CONFIG = {
 CAUSAL_CONFIG = {
     "confidence": float(os.getenv("CAUSAL_EFFECT_CONFIDENCE", 0.95)),
 }
+
+# YOLO Evaluation
+EVAL_CONFIG = {
+    "project_name": os.getenv("EVAL_PROJECT_NAME", "yolo-retail-intelligence"),
+    "experiment_name": os.getenv("EVAL_EXPERIMENT_NAME", "model_evaluation"),
+    "output_dir": os.getenv("EVAL_OUTPUT_DIR", "evaluation_output"),
+    "dataset_dir": os.getenv("EVAL_DATASET_DIR", "data"),
+}
+
+YOLO_CONFIG = {
+    "imgsz": int(os.getenv("YOLO_IMGSZ", "640")),
+    "conf_threshold": float(os.getenv("YOLO_CONF_THRESHOLD", "0.25")),
+    "iou_threshold": float(os.getenv("YOLO_IOU_THRESHOLD", "0.45")),
+    "device": os.getenv("YOLO_DEVICE", "cpu"),
+    "half": os.getenv("YOLO_HALF", "false").lower() == "true",
+}

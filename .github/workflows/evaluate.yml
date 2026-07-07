@@ -1,0 +1,173 @@
+name: YOLO Model Evaluation
+
+on:
+  push:
+    paths:
+      - 'models/**'
+      - 'evaluation/**'
+      - 'config/**'
+  pull_request:
+    paths:
+      - 'models/**'
+      - 'evaluation/**'
+      - 'config/**'
+  workflow_dispatch:
+    inputs:
+      model_path:
+        description: 'Path to model file'
+        required: false
+        default: 'models/yolov8n.pt'
+      dataset_path:
+        description: 'Path to validation dataset'
+        required: false
+        default: 'data/val'
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        model: [yolov8n.pt, yolov8s.pt, yolov8m.pt]
+        include:
+          - model: yolov8n.pt
+            name: YOLOv8n
+          - model: yolov8s.pt
+            name: YOLOv8s
+          - model: yolov8m.pt
+            name: YOLOv8m
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ultralytics opencv-python-headless
+
+      - name: Download model if not cached
+        run: |
+          if [ ! -f "models/${{ matrix.model }}" ]; then
+            mkdir -p models
+            wget -q "https://github.com/ultralytics/assets/releases/download/v8.2.0/${{ matrix.model }}" -O "models/${{ matrix.model }}"
+          fi
+
+      - name: Run evaluation
+        run: |
+          python -m evaluation.benchmark evaluate \
+            --model models/${{ matrix.model }} \
+            --dataset data/val \
+            --name "${{ matrix.name }}" \
+            --version ${{ github.sha }} \
+            --device cpu
+
+      - name: Generate reports
+        run: |
+          python -m evaluation.benchmark leaderboard --metric mAP50 --top-k 20
+
+      - name: Upload evaluation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results-${{ matrix.name }}
+          path: |
+            evaluation_output/
+          retention-days: 30
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report-${{ matrix.name }}
+          path: evaluation_output/reports/*.html
+          retention-days: 60
+
+  compare:
+    runs-on: ubuntu-latest
+    needs: evaluate
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install ultralytics opencv-python-headless
+
+      - name: Download baseline artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: evaluation-results-YOLOv8n
+
+      - name: Run regression comparison
+        run: |
+          python -m evaluation.benchmark compare \
+            --baseline main \
+            --candidate ${{ github.sha }} \
+            --model-name "${{ matrix.name }}"
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportDir = 'evaluation_output/reports/';
+            const files = fs.readdirSync(reportDir).filter(f => f.startsWith('comparison_'));
+            if (files.length > 0) {
+              const content = fs.readFileSync(reportDir + files[0], 'utf8');
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## Model Evaluation Results\n\`\`\`\n${content.slice(0, 3000)}\n\`\`\``
+              });
+            }
+
+  aggregate:
+    runs-on: ubuntu-latest
+    needs: evaluate
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install ultralytics opencv-python-headless
+
+      - name: Aggregate results
+        run: |
+          python -m evaluation.benchmark leaderboard --metric mAP50 --top-k 50
+
+      - name: Deploy leaderboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: aggregated-leaderboard
+          path: evaluation_output/leaderboard.json
+          retention-days: 90
